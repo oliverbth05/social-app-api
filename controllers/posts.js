@@ -9,11 +9,12 @@ exports.get_posts = async(req, res) => {
 exports.get_post = async(req, res) => {
     await Post.updateOne({_id: req.params.id}, {$inc: {views: 1}})
     var post = await Post.findOne({_id: req.params.id})
-    var comments = await Comment.find({post_id: post._id})
-    res.json({
-        post,
-        comments
-    })
+    res.json(post)
+}
+
+exports.get_comments = async(req, res) => {
+    var comments = await Comment.find({post_id: req.params.id});
+    res.json(comments)
 }
 
 exports.create_post = async(req, res) => {
