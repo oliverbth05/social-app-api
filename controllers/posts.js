@@ -1,47 +1,103 @@
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
+const jwt = require('jsonwebtoken');
 
 exports.get_posts = async(req, res) => {
-    var posts = await Post.find({})
-    res.json(posts)
+    try {
+        var posts = await Post.find({})
+        res.json(posts)
+    }
+    catch (err) {
+        res.send(500, {error: 'Error fetching posts'})
+    }
 }
 
 exports.get_post = async(req, res) => {
-    await Post.updateOne({_id: req.params.id}, {$inc: {views: 1}})
-    var post = await Post.findOne({_id: req.params.id})
-    res.json(post)
+    try {
+        await Post.updateOne({_id: req.params.id}, {$inc: {views: 1}})
+        var post = await Post.findOne({_id: req.params.id})
+        res.json(post)
+    }
+    
+    catch (err) {
+        res.send(500, {error: 'Error fetching post'})
+    }
+   
 }
 
 exports.get_comments = async(req, res) => {
-    var comments = await Comment.find({post_id: req.params.id});
-    res.json(comments)
+    try {
+        var comments = await Comment.find({post_id: req.params.id});
+        res.json(comments)
+    }
+    
+    catch (err) {
+        res.send(500, {error: 'Error fetching commenst'})
+    }
+    
+}
+
+exports.post_comment = async(req, res) => {
+    try {
+        
+        var verified = await jwt.verify(req.body.token, 'secret')
+    
+        if (!verified) {
+            let err = new Error('Invalid Token')
+            err.name = 403
+            throw err
+        }
+    
+        var comment = await Comment.create({
+            post_id: req.params.id,
+            date: new Date(),
+            user_name: req.body.user_name,
+            user_id: req.body.user_id,
+            body: req.body.body
+        })
+        res.status(200).json(comment);
+    }
+    
+    catch (err) {
+        res.send(err.name, {error: err.message})
+    }
 }
 
 exports.create_post = async(req, res) => {
     try {
-        await Post.create({
+        var verified = await jwt.verify(req.body.token, 'secret')
+        if (!verified) {
+            let err = new Error('invalid token')
+            err.name = 403
+            throw err
+        
+        }
+        var created = await Post.create({
             title: req.body.title,
             body: req.body.body,
             user_id: req.body.user_id,
             user_name: req.body.user_name,
             image: req.body.image,
         })
-        res.redirect('/home')
+        res.json(created)
     }
     catch(err) {
-        
+        res.send(err.name, {error: err.message})
     }
 }
 
 exports.like_post = async(req, res) => {
     try {
-        console.log('liked')
+        var verified = await jwt.verify(req.body.token, 'secret')
+        if (!verified) {
+            let err = new Error('invalid token')
+            err.name = 403
+            throw err
+        }
         await Post.updateOne({_id: req.params.id}, {$addToSet: {likes: req.body.user_id }})
         res.status(200).json();
     }
-
     catch (err) {
-        console.log(err)
-        res.status(500).json()
+        res.send(err.name, {error: err.message})
     }
 }

@@ -1,7 +1,16 @@
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
 exports.add_pin = async(req, res) => {
   try {
+    
+    let verified = await jwt.verify(req.body.token, 'secret')
+    
+    if (!verified) {
+      let err = new Error('invalid token')
+      err.name = 403
+      throw err
+    }
 
     let pinData = {
       post_id: req.body.post_id,
@@ -15,6 +24,6 @@ exports.add_pin = async(req, res) => {
   }
 
   catch (err) {
-
+    res.send(err.name, {error: err.message})
   }
 }
