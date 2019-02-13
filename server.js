@@ -16,7 +16,7 @@ app.use(authRoutes);
 app.use(postsRoutes);
 app.use(userRoutes);
 
-mongoose.connect('mongodb://<>:<>@ds163354.mlab.com:63354/social_app', {useNewUrlParser: true})
+mongoose.connect('mongodb://:@ds163354.mlab.com:63354/social_app', {useNewUrlParser: true})
     .then(() => { 
         console.log('connected to mongoDB') 
         app.listen(8081, () => {

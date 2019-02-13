@@ -24,6 +24,7 @@ exports.post_login = async (req, res) => {
         }
     
     catch (err){
+        console.log(err)
         res.send(err.name, {error: err.message})
     }
 }
