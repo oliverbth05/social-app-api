@@ -74,6 +74,7 @@ exports.create_post = async(req, res) => {
         }
         var created = await Post.create({
             title: req.body.title,
+            caption: req.body.caption,
             body: req.body.body,
             user_id: req.body.user_id,
             user_name: req.body.user_name,

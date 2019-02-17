@@ -27,3 +27,14 @@ exports.add_pin = async(req, res) => {
     res.send(err.name, {error: err.message})
   }
 }
+
+exports.get_userProfile = async(req, res) => {
+  try {
+    let user = await User.findOne({_id: req.params.id})
+    res.json(user)
+  }
+  
+  catch (err) {
+    console.log(err)
+  }
+}
