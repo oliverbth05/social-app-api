@@ -27,11 +27,14 @@ exports.get_post = async(req, res) => {
 
 exports.get_comments = async(req, res) => {
     try {
-        var comments = await Comment.find({post_id: req.params.id});
-        res.json(comments)
+        console.log(req.query.page)
+        var comments = await Comment.find({post_id: req.params.id}, null, {skip: (parseInt(req.query.page) * 10), limit: 10});
+        var count = await Comment.count({post_id: req.params.id});
+        res.json({comments, count})
     }
     
     catch (err) {
+        console.log(err)
         res.send(500, {error: 'Error fetching commenst'})
     }
     
