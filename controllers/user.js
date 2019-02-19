@@ -28,6 +28,18 @@ exports.add_pin = async(req, res) => {
   }
 }
 
+exports.remove_pin = async(req, res) => {
+  try {
+    var deleted = await User.update({ _id: req.params.user_id }, { $pull: { pins: { post_id: req.params.post_id } } } );
+    console.log(deleted)
+    res.status(200).send();
+  }
+  
+  catch (err) {
+    console.log(err)
+  }
+}
+
 exports.get_userProfile = async(req, res) => {
   try {
     let user = await User.findOne({_id: req.params.id})

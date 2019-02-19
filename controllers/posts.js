@@ -27,8 +27,11 @@ exports.get_post = async(req, res) => {
 
 exports.get_comments = async(req, res) => {
     try {
-        console.log(req.query.page)
-        var comments = await Comment.find({post_id: req.params.id}, null, {skip: (parseInt(req.query.page) * 10), limit: 10});
+        
+        const currentPage = req.query.page || 1;
+        const perPage = 10;
+        const page = ((currentPage - 1) * perPage)
+        var comments = await Comment.find({post_id: req.params.id}, null, {skip: page, limit: perPage, sort: {date: -1}});
         var count = await Comment.count({post_id: req.params.id});
         res.json({comments, count})
     }
@@ -80,6 +83,7 @@ exports.create_post = async(req, res) => {
             caption: req.body.caption,
             body: req.body.body,
             user_id: req.body.user_id,
+            tags: req.body.tags,
             user_name: req.body.user_name,
             image: req.body.image,
         })
