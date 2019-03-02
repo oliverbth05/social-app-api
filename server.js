@@ -7,6 +7,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const postsRoutes = require('./routes/posts');
 const userRoutes = require('./routes/user');
+const statsRoutes = require('./routes/stats');
 const app = express();
 
 app.use(cors());
@@ -15,6 +16,7 @@ app.use(bodyParser.json())
 app.use(authRoutes); 
 app.use(postsRoutes);
 app.use(userRoutes);
+app.use(statsRoutes);
 
 mongoose.connect('mongodb://<>:<>@ds163354.mlab.com:63354/social_app', {useNewUrlParser: true})
     .then(() => { 
