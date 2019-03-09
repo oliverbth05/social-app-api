@@ -44,7 +44,8 @@ exports.post_register = async (req, res) => {
             first_name: req.body.first_name,
             last_name: req.body.last_name,
             email: req.body.email,
-            password: bcrypt.hashSync(req.body.password, 12)
+            password: bcrypt.hashSync(req.body.password, 12),
+            join_date: new Date()
         })
 
         var token = jwt.sign({ id: newUser._id }, 'secret', { expiresIn: 86400 }) // expires in 24 hours

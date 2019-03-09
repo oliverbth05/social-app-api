@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 
 exports.get_posts = async(req, res) => {
     try {
-        
         var sortQuery;
         if (req.query.sort ==='Recent') {
             sortQuery = {
@@ -30,11 +29,9 @@ exports.get_posts = async(req, res) => {
         else {
             sortQuery = null
         } 
-        
         const currentPage = req.query.page || 1;
         const perPage = 25;
         const page = ((currentPage - 1) * perPage)
-        
         if (req.query.searchTerm === '') {
             const posts = await Post.aggregate([
                 {$match : {title : { '$regex' : req.query.searchTerm, '$options' : 'i'}}},
@@ -45,7 +42,6 @@ exports.get_posts = async(req, res) => {
             ])
             res.json(posts)
         }
-        
         else {
             const posts = await Post.aggregate([
             {$project: { likeCount: { $size: "$likes" }, title: "$title", user_name: "$user_name", date: '$date', image: '$image', views: '$views', tags: '$tags'}},
@@ -55,10 +51,6 @@ exports.get_posts = async(req, res) => {
         ])
         res.json(posts)
         }
-        
-        
-        
-        
     }
     catch (err) {
         res.send(500, {error: 'Error fetching posts'})
@@ -69,12 +61,16 @@ exports.get_post = async(req, res) => {
     try {
         await Post.updateOne({_id: req.params.id}, {$inc: {views: 1}})
         var post = await Post.findOne({_id: req.params.id})
+        if (post === null) {
+            let err = new Error('Post not found.')
+            err.name = 404
+            throw err
+        }
         res.json(post)
     }
     catch (err) {
-        res.send(500, {error: 'Error fetching post'})
+        res.send(err.name, {error: err.message})
     }
-   
 }
 
 exports.get_comments = async(req, res) => {
@@ -86,25 +82,20 @@ exports.get_comments = async(req, res) => {
         var count = await Comment.count({post_id: req.params.id});
         res.json({comments, count})
     }
-    
     catch (err) {
         console.log(err)
         res.send(500, {error: 'Error fetching commenst'})
     }
-    
 }
 
 exports.post_comment = async(req, res) => {
     try {
-        
         var verified = await jwt.verify(req.body.token, 'secret')
-    
         if (!verified) {
             let err = new Error('Invalid Token')
             err.name = 403
             throw err
         }
-    
         var comment = await Comment.create({
             post_id: req.params.id,
             date: new Date(),
@@ -114,7 +105,6 @@ exports.post_comment = async(req, res) => {
         })
         res.status(200).json(comment);
     }
-    
     catch (err) {
         res.send(err.name, {error: err.message})
     }
@@ -136,6 +126,7 @@ exports.create_post = async(req, res) => {
             tags: req.body.tags,
             user_name: req.body.user_name,
             image: req.body.image,
+            date: new Date()
         })
         res.json(created)
     }
@@ -165,7 +156,6 @@ exports.get_comment = async(req, res) => {
         var comment = await Comment.findOne({_id: req.params.id})
         res.json(comment)
     }
-    
     catch(err) {
         res.send(err.name, {error: err.message})
     }
@@ -182,7 +172,6 @@ exports.update_comment = async(req, res) => {
         var updated = await Comment.updateOne({_id: req.body._id}, { $set: {body: req.body.body}});
         res.status(200).send()
     }
-    
     catch (err) {
         res.send(err.name, {error: err.message})
     }
@@ -196,11 +185,9 @@ exports.delete_comment = async(req, res) => {
             err.name = 403
             throw err
         }
-        
         var deleted = await Comment.deleteOne({_id: req.params.id})
         res.status(200).json()
     }
-    
     catch (err) {
         res.send(err.name, {error: err.message})
     }
@@ -214,7 +201,6 @@ exports.update_post = async(req, res) => {
             err.name = 403
             throw err
         }
-        
         var updated = await Post.updateOne({_id: req.body._id}, {$set: {
             title: req.body.title,
             caption: req.body.caption,
@@ -222,10 +208,8 @@ exports.update_post = async(req, res) => {
             tags: req.body.tags,
             image: req.body.image
         }})
-        
         res.status(200).json()
     }
-    
     catch (err) {
         res.send(err.name, {error: err.message})
     }
@@ -239,16 +223,10 @@ exports.delete_post = async(req, res) => {
             err.name = 403
             throw err
         }
-        
-        console.log(req.body)
-        
         var deletedPost = await Post.deleteOne({_id: req.params.id})
         var deleteComments = await Comment.deleteMany({post_id: req.params.id})
-        
-        console.log(deletedPost)
         res.status(200).json()
     }
-    
     catch (err) {
         
     }
@@ -256,40 +234,30 @@ exports.delete_post = async(req, res) => {
 
 exports.search_posts = async(req, res) => {
     try {
-        
-        
-        
         var sort;
-        
         if (req.query.sort === 'date') {
             sort = {
                 date: -1
             }
         }
-        
         else if (req.query.sort === 'views') {
             sort = {
                 views: -1
             }
         }
-        
         else if (req.query.sort === 'likes') {
             sort = {
                 likeCount: -1
             }
         }
-        
         else {
             sort = {
                 date: -1
             }
         }
-        console.log(sort)
-        
         const currentPage = req.query.page || 1;
         const perPage = 25;
         const page = ((currentPage - 1) * perPage)
-        
         const results = await Post.aggregate(
             [
             {$match : {title : { '$regex' : req.query.searchTerm, '$options' : 'i'}}},
@@ -299,10 +267,8 @@ exports.search_posts = async(req, res) => {
             {$limit: perPage}
             ]
         )
-        
         res.json(results)
     }
-    
     catch (err) {
         console.log(err)
     }
