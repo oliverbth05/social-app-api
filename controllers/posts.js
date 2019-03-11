@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 
 exports.get_posts = async(req, res) => {
     try {
+        console.log(req.query)
         var sortQuery;
         if (req.query.sort ==='Recent') {
             sortQuery = {
@@ -27,12 +28,18 @@ exports.get_posts = async(req, res) => {
             } 
         }
         else {
-            sortQuery = null
+            sortQuery = {
+                $sort: {
+                    date: -1
+                }
+            }
         } 
+        
         const currentPage = req.query.page || 1;
         const perPage = 25;
         const page = ((currentPage - 1) * perPage)
-        if (req.query.searchTerm === '') {
+        
+        if (req.query.searchTerm) {
             const posts = await Post.aggregate([
                 {$match : {title : { '$regex' : req.query.searchTerm, '$options' : 'i'}}},
                 {$project: { likeCount: { $size: "$likes" }, title: "$title", user_name: "$user_name", date: '$date', image: '$image', views: '$views', tags: '$tags'}},
@@ -42,6 +49,7 @@ exports.get_posts = async(req, res) => {
             ])
             res.json(posts)
         }
+        
         else {
             const posts = await Post.aggregate([
             {$project: { likeCount: { $size: "$likes" }, title: "$title", user_name: "$user_name", date: '$date', image: '$image', views: '$views', tags: '$tags'}},
@@ -53,7 +61,8 @@ exports.get_posts = async(req, res) => {
         }
     }
     catch (err) {
-        res.json(500)
+        console.log(err)
+        res.status(500).json()
     }
 }
 
@@ -69,7 +78,8 @@ exports.get_post = async(req, res) => {
         res.json(post)
     }
     catch (err) {
-        res.json(500)
+        console.log(err)
+        res.status(500).json()
     }
 }
 
@@ -84,7 +94,7 @@ exports.get_comments = async(req, res) => {
     }
     catch (err) {
         console.log(err)
-        res.json(500)
+        res.status(500).json()
     }
 }
 
@@ -100,7 +110,8 @@ exports.post_comment = async(req, res) => {
         res.status(200).json(comment);
     }
     catch (err) {
-        res.json(500)
+        console.log(err)
+        res.status(500).json()
     }
 }
 
@@ -120,7 +131,8 @@ exports.create_post = async(req, res) => {
         res.json(created)
     }
     catch(err) {
-        res.json(500);
+        console.log(err)
+        res.status(500).json()
     }
 }
 
@@ -131,7 +143,8 @@ exports.like_post = async(req, res) => {
         res.status(200).json();
     }
     catch (err) {
-        res.json(500)
+        console.log(err)
+        res.status(500).json()
     }
 }
 
@@ -141,7 +154,8 @@ exports.get_comment = async(req, res) => {
         res.json(comment)
     }
     catch(err) {
-        res.json(500)
+        console.log(err)
+        res.status(500).json()
     }
 }
 
@@ -153,7 +167,8 @@ exports.update_comment = async(req, res) => {
         res.status(200).send()
     }
     catch (err) {
-        res.json(500)
+        console.log(err)
+        res.status(500).json()
     }
 }
 
@@ -163,7 +178,8 @@ exports.delete_comment = async(req, res) => {
         res.status(200).json()
     }
     catch (err) {
-        res.json(500)
+        console.log(err)
+        res.status(500).json()
     }
 }
 
@@ -180,61 +196,19 @@ exports.update_post = async(req, res) => {
         res.status(200).json()
     }
     catch (err) {
-        res.json(500)
+        console.log(err)
+        res.status(500).json()
     }
 }
 
 exports.delete_post = async(req, res) => {
     try {
-        var verified = await jwt.verify(req.query.token, 'secret')
-      
         var deletedPost = await Post.deleteOne({_id: req.params.id})
         var deleteComments = await Comment.deleteMany({post_id: req.params.id})
         res.status(200).json()
     }
     catch (err) {
-        res.json(500)
-    }
-}
-
-exports.search_posts = async(req, res) => {
-    try {
-        var sort;
-        if (req.query.sort === 'date') {
-            sort = {
-                date: -1
-            }
-        }
-        else if (req.query.sort === 'views') {
-            sort = {
-                views: -1
-            }
-        }
-        else if (req.query.sort === 'likes') {
-            sort = {
-                likeCount: -1
-            }
-        }
-        else {
-            sort = {
-                date: -1
-            }
-        }
-        const currentPage = req.query.page || 1;
-        const perPage = 25;
-        const page = ((currentPage - 1) * perPage)
-        const results = await Post.aggregate(
-            [
-            {$match : {title : { '$regex' : req.query.searchTerm, '$options' : 'i'}}},
-            {$project: { likeCount: { $size: "$likes" }, title: "$title", user_name: "$user_name", date: '$date', image: '$image', views: '$views', tags: '$tags'}},
-            {$sort: sort},
-            {$skip: page},
-            {$limit: perPage}
-            ]
-        )
-        res.json(results)
-    }
-    catch (err) {
-        res.json(500)
+        console.log(err)
+        res.status(500).json()
     }
 }
