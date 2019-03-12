@@ -78,8 +78,12 @@ exports.get_post = async(req, res) => {
         res.json(post)
     }
     catch (err) {
-        console.log(err)
-        res.status(500).json()
+        if (err.name) {
+            if(err.name === 404) {
+                 res.status(404).json()
+            }
+        }
+       
     }
 }
 
