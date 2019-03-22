@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 const Post = require('../models/Post');
 const jwt = require('jsonwebtoken');
 
@@ -87,3 +88,26 @@ exports.get_user_posts = async (req, res) => {
     res.json(500)
   }
 }
+
+exports.get_notifications = async(req, res) => {
+  try {
+    var notifications = await Notification.find({user_id: req.params.user_id})
+    res.json(notifications)
+  }
+  
+  catch(err) {
+    
+  }
+}
+
+exports.update_notification = async(req, res) => {
+  try {
+    await Notification.updateOne({_id: req.params.notification_id}, {$set : {isRead: true}})
+    res.status(200).json()
+  }
+  
+  catch (err) {
+    
+  }
+}
+

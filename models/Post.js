@@ -15,6 +15,10 @@ const postSchema = new mongoose.Schema({
         type: Date,
         default : Date.now()
     },
+    category: {
+        type: String,
+        default: 'Miscellaneous'
+    },
     tags: [{
         type : String
     }],

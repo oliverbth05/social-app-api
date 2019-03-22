@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 exports.post_login = async (req, res) => {
     
@@ -33,25 +34,29 @@ exports.post_register = async (req, res) => {
     
     try {
         let doesExist = await User.findOne({ email: req.body.email });
-
         if (doesExist) {
             let err = new Error('User already exists')
             err.name = 400
             throw err
         }
-
         var newUser = await User.create({
             first_name: req.body.first_name,
             last_name: req.body.last_name,
             email: req.body.email,
             password: bcrypt.hashSync(req.body.password, 12),
-            join_date: new Date()
+            join_date: new Date(),
         })
-
+        
+        var notification = Notification.create({
+            user_id: newUser._id,
+            title: 'Welcome to Rag',
+            body: 'Head to the Write page in the navigation to create your first post.',
+            date: new Date(),
+            isRead: false
+        })
         var token = jwt.sign({ id: newUser._id }, 'secret', { expiresIn: 86400 }) // expires in 24 hours
         res.json({ user: newUser, token, })
     }
-    
     catch (err) {
         res.send(err.name, {error: err.message})
     }

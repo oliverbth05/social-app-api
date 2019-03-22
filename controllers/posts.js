@@ -1,6 +1,8 @@
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 const jwt = require('jsonwebtoken');
+const Notification = require('../models/Notification');
+const User = require('../models/User');
 
 exports.get_posts = async(req, res) => {
     try {
@@ -75,6 +77,25 @@ exports.get_post = async(req, res) => {
             err.name = 404
             throw err
         }
+        
+        if (post.views === 100) {
+            Notification.create({
+                title: 'Your post has been viewed 100 times.',
+                body: '',
+                date: new Date(),
+                user_id: post.user_id
+            })
+        }
+        
+        if (post.views === 1000) {
+            Notification.create({
+                title: 'Your post has been viewed 1000 times.',
+                body: '',
+                date: new Date(),
+                user_id: post.user_id
+            })
+        }
+        
         res.json(post)
     }
     catch (err) {
@@ -127,6 +148,7 @@ exports.create_post = async(req, res) => {
             caption: req.body.caption,
             body: req.body.body,
             user_id: req.body.user_id,
+            category: req.body.category,
             tags: req.body.tags,
             user_name: req.body.user_name,
             image: req.body.image,
@@ -142,8 +164,15 @@ exports.create_post = async(req, res) => {
 
 exports.like_post = async(req, res) => {
     try {
-     
         await Post.updateOne({_id: req.params.id}, {$addToSet: {likes: req.body.user_id }})
+        
+        await Notification.create({
+            user_id: req.body.author_id,
+            title: `${req.body.user_name} liked your post.`,
+            date: new Date(),
+            isRead: false
+        })
+        
         res.status(200).json();
     }
     catch (err) {
@@ -195,7 +224,8 @@ exports.update_post = async(req, res) => {
             caption: req.body.caption,
             body: req.body.body,
             tags: req.body.tags,
-            image: req.body.image
+            image: req.body.image,
+            category: req.body.category
         }})
         res.status(200).json()
     }

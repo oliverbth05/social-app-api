@@ -6,18 +6,9 @@ const userSchema = new mongoose.Schema({
     email: String,
     password: String,
     join_date: Date,
-    summary: {
-        type: String,
-        default: 'No summary provided'
-    },
     pins: [{}],
     subscriptions: [{}],
     subscribers: [{}],
-    notifications: [{}],
-    unread_notifications: {
-        type: Number,
-        default: 0
-    }
 });
 
 const User = mongoose.model('User', userSchema);
