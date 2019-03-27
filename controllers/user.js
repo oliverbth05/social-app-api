@@ -3,7 +3,7 @@ const Notification = require('../models/Notification');
 const Post = require('../models/Post');
 const jwt = require('jsonwebtoken');
 
-exports.add_pin = async (req, res) => {
+exports.add_pin = async(req, res) => {
   try {
 
     let pinData = {
@@ -21,7 +21,7 @@ exports.add_pin = async (req, res) => {
   }
 }
 
-exports.remove_pin = async (req, res) => {
+exports.remove_pin = async(req, res) => {
   try {
     var deleted = await User.update({ _id: req.params.user_id }, { $pull: { pins: { post_id: req.params.post_id } } });
     res.status(200).json();
@@ -31,7 +31,7 @@ exports.remove_pin = async (req, res) => {
   }
 }
 
-exports.add_subscription = async (req, res) => {
+exports.add_subscription = async(req, res) => {
   try {
 
 
@@ -57,7 +57,7 @@ exports.add_subscription = async (req, res) => {
   }
 }
 
-exports.remove_subscription = async (req, res) => {
+exports.remove_subscription = async(req, res) => {
   try {
 
     var deletedCreator = await User.updateOne({ _id: req.params.subscriber_id }, { $pull: { subscriptions: { creator_id: req.params.creator_id } } });
@@ -69,7 +69,7 @@ exports.remove_subscription = async (req, res) => {
   }
 }
 
-exports.get_userProfile = async (req, res) => {
+exports.get_userProfile = async(req, res) => {
   try {
     let user = await User.findOne({ _id: req.params.id })
     res.json(user)
@@ -79,9 +79,19 @@ exports.get_userProfile = async (req, res) => {
   }
 }
 
-exports.get_user_posts = async (req, res) => {
+exports.get_user_posts = async(req, res) => {
   try {
-    const posts = await Post.find({ user_id: req.params.id })
+
+    let posts;
+
+    if (req.query.limit) {
+      posts = await Post.find({ user_id: req.params.id }).limit(5)
+    }
+
+    else {
+      posts = await Post.find({ user_id: req.params.id })
+    }
+
     res.json(posts)
   }
   catch (err) {
@@ -91,23 +101,22 @@ exports.get_user_posts = async (req, res) => {
 
 exports.get_notifications = async(req, res) => {
   try {
-    var notifications = await Notification.find({user_id: req.params.user_id})
+    var notifications = await Notification.find({ user_id: req.params.user_id })
     res.json(notifications)
   }
-  
-  catch(err) {
-    
+
+  catch (err) {
+
   }
 }
 
 exports.update_notification = async(req, res) => {
   try {
-    await Notification.updateOne({_id: req.params.notification_id}, {$set : {isRead: true}})
+    await Notification.updateOne({ _id: req.params.notification_id }, { $set: { isRead: true } })
     res.status(200).json()
   }
-  
+
   catch (err) {
-    
+
   }
 }
-

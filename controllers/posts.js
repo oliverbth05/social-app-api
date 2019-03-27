@@ -8,11 +8,11 @@ exports.get_posts = async(req, res) => {
     try {
         console.log(req.query)
         var sortQuery;
-        if (req.query.sort ==='Recent') {
+        if (req.query.sort === 'Recent') {
             sortQuery = {
                 $sort: {
                     date: -1
-                } 
+                }
             }
         }
         else if (req.query.sort === 'Likes') {
@@ -21,13 +21,13 @@ exports.get_posts = async(req, res) => {
                     likeCount: -1
                 }
             }
-        } 
+        }
         else if (req.query.sort === 'Views') {
-            sortQuery =  {
+            sortQuery = {
                 $sort: {
                     views: -1
                 }
-            } 
+            }
         }
         else {
             sortQuery = {
@@ -35,31 +35,31 @@ exports.get_posts = async(req, res) => {
                     date: -1
                 }
             }
-        } 
-        
+        }
+
         const currentPage = req.query.page || 1;
         const perPage = 25;
         const page = ((currentPage - 1) * perPage)
-        
+
         if (req.query.searchTerm) {
             const posts = await Post.aggregate([
-                {$match : {title : { '$regex' : req.query.searchTerm, '$options' : 'i'}}},
-                {$project: { likeCount: { $size: "$likes" }, title: "$title", user_name: "$user_name", date: '$date', image: '$image', views: '$views', tags: '$tags'}},
+                { $match: { title: { '$regex': req.query.searchTerm, '$options': 'i' } } },
+                { $project: { likeCount: { $size: "$likes" }, title: "$title", user_name: "$user_name", date: '$date', image: '$image', views: '$views', tags: '$tags' } },
                 sortQuery,
-                {$skip: page},
-                {$limit: perPage},
+                { $skip: page },
+                { $limit: perPage },
             ])
             res.json(posts)
         }
-        
+
         else {
             const posts = await Post.aggregate([
-            {$project: { likeCount: { $size: "$likes" }, title: "$title", user_name: "$user_name", date: '$date', image: '$image', views: '$views', tags: '$tags'}},
+                { $project: { likeCount: { $size: "$likes" }, title: "$title", user_name: "$user_name", date: '$date', image: '$image', views: '$views', tags: '$tags' } },
             sortQuery,
-            {$skip: page},
-            {$limit: perPage},
+                { $skip: page },
+                { $limit: perPage },
         ])
-        res.json(posts)
+            res.json(posts)
         }
     }
     catch (err) {
@@ -70,14 +70,14 @@ exports.get_posts = async(req, res) => {
 
 exports.get_post = async(req, res) => {
     try {
-        await Post.updateOne({_id: req.params.id}, {$inc: {views: 1}})
-        var post = await Post.findOne({_id: req.params.id})
+        await Post.updateOne({ _id: req.params.id }, { $inc: { views: 1 } })
+        var post = await Post.findOne({ _id: req.params.id })
         if (post === null) {
             let err = new Error('Post not found.')
             err.name = 404
             throw err
         }
-        
+
         if (post.views === 100) {
             Notification.create({
                 title: 'Your post has been viewed 100 times.',
@@ -86,7 +86,7 @@ exports.get_post = async(req, res) => {
                 user_id: post.user_id
             })
         }
-        
+
         if (post.views === 1000) {
             Notification.create({
                 title: 'Your post has been viewed 1000 times.',
@@ -95,16 +95,16 @@ exports.get_post = async(req, res) => {
                 user_id: post.user_id
             })
         }
-        
+
         res.json(post)
     }
     catch (err) {
         if (err.name) {
-            if(err.name === 404) {
-                 res.status(404).json()
+            if (err.name === 404) {
+                res.status(404).json()
             }
         }
-       
+
     }
 }
 
@@ -113,9 +113,9 @@ exports.get_comments = async(req, res) => {
         const currentPage = req.query.page || 1;
         const perPage = 10;
         const page = ((currentPage - 1) * perPage)
-        var comments = await Comment.find({post_id: req.params.id}, null, {skip: page, limit: perPage, sort: {date: -1}});
-        var count = await Comment.count({post_id: req.params.id});
-        res.json({comments, count})
+        var comments = await Comment.find({ post_id: req.params.id }, null, { skip: page, limit: perPage, sort: { date: -1 } });
+        var count = await Comment.count({ post_id: req.params.id });
+        res.json({ comments, count })
     }
     catch (err) {
         console.log(err)
@@ -140,9 +140,43 @@ exports.post_comment = async(req, res) => {
     }
 }
 
+exports.like_comment = async(req, res) => {
+    try {
+        await Comment.updateOne({ _id: req.params.id }, { $addToSet: { likes: req.body.user_id } })
+        await Notification.create({
+            user_id: req.body.author_id,
+            title: `${req.body.user_name} liked your comment.`,
+            date: new Date(),
+            isRead: false
+        })
+        res.status(200).json();
+    }
+
+    catch (err) {
+        console.log(err)
+        res.status(500).json()
+    }
+}
+
+exports.post_reply = async(req, res) => {
+    try {
+
+        const reply = {
+            ...req.body
+        }
+
+        await Comment.updateOne({ _id: req.params.comment_id }, { $push: { replies: reply } })
+        res.status(200).json()
+    }
+
+    catch (err) {
+
+    }
+}
+
 exports.create_post = async(req, res) => {
     try {
-      
+
         var created = await Post.create({
             title: req.body.title,
             caption: req.body.caption,
@@ -156,7 +190,7 @@ exports.create_post = async(req, res) => {
         })
         res.json(created)
     }
-    catch(err) {
+    catch (err) {
         console.log(err)
         res.status(500).json()
     }
@@ -164,15 +198,15 @@ exports.create_post = async(req, res) => {
 
 exports.like_post = async(req, res) => {
     try {
-        await Post.updateOne({_id: req.params.id}, {$addToSet: {likes: req.body.user_id }})
-        
+        await Post.updateOne({ _id: req.params.id }, { $addToSet: { likes: req.body.user_id } })
+
         await Notification.create({
             user_id: req.body.author_id,
             title: `${req.body.user_name} liked your post.`,
             date: new Date(),
             isRead: false
         })
-        
+
         res.status(200).json();
     }
     catch (err) {
@@ -183,10 +217,10 @@ exports.like_post = async(req, res) => {
 
 exports.get_comment = async(req, res) => {
     try {
-        var comment = await Comment.findOne({_id: req.params.id})
+        var comment = await Comment.findOne({ _id: req.params.id })
         res.json(comment)
     }
-    catch(err) {
+    catch (err) {
         console.log(err)
         res.status(500).json()
     }
@@ -194,9 +228,9 @@ exports.get_comment = async(req, res) => {
 
 exports.update_comment = async(req, res) => {
     try {
-       
-    
-        var updated = await Comment.updateOne({_id: req.body._id}, { $set: {body: req.body.body}});
+
+
+        var updated = await Comment.updateOne({ _id: req.body._id }, { $set: { body: req.body.body } });
         res.status(200).send()
     }
     catch (err) {
@@ -207,7 +241,7 @@ exports.update_comment = async(req, res) => {
 
 exports.delete_comment = async(req, res) => {
     try {
-        var deleted = await Comment.deleteOne({_id: req.params.id})
+        var deleted = await Comment.deleteOne({ _id: req.params.id })
         res.status(200).json()
     }
     catch (err) {
@@ -218,15 +252,17 @@ exports.delete_comment = async(req, res) => {
 
 exports.update_post = async(req, res) => {
     try {
-    
-        var updated = await Post.updateOne({_id: req.body._id}, {$set: {
-            title: req.body.title,
-            caption: req.body.caption,
-            body: req.body.body,
-            tags: req.body.tags,
-            image: req.body.image,
-            category: req.body.category
-        }})
+
+        var updated = await Post.updateOne({ _id: req.body._id }, {
+            $set: {
+                title: req.body.title,
+                caption: req.body.caption,
+                body: req.body.body,
+                tags: req.body.tags,
+                image: req.body.image,
+                category: req.body.category
+            }
+        })
         res.status(200).json()
     }
     catch (err) {
@@ -237,8 +273,8 @@ exports.update_post = async(req, res) => {
 
 exports.delete_post = async(req, res) => {
     try {
-        var deletedPost = await Post.deleteOne({_id: req.params.id})
-        var deleteComments = await Comment.deleteMany({post_id: req.params.id})
+        var deletedPost = await Post.deleteOne({ _id: req.params.id })
+        var deleteComments = await Comment.deleteMany({ post_id: req.params.id })
         res.status(200).json()
     }
     catch (err) {

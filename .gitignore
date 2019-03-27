@@ -78,3 +78,6 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+#DB Password and Username
+dbconfig.js
