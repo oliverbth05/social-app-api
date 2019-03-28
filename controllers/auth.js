@@ -4,7 +4,7 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 
 exports.post_login = async (req, res) => {
-    
+      
     try {
         let user = await User.findOne({ email: req.body.email })
         
@@ -40,11 +40,11 @@ exports.post_register = async (req, res) => {
             throw err
         }
         var newUser = await User.create({
-            first_name: req.body.first_name,
-            last_name: req.body.last_name,
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
             email: req.body.email,
             password: bcrypt.hashSync(req.body.password, 12),
-            join_date: new Date(),
+            joinDate: new Date(),
         })
         
         var notification = Notification.create({
@@ -58,6 +58,7 @@ exports.post_register = async (req, res) => {
         res.json({ user: newUser, token, })
     }
     catch (err) {
+        console.log(err)
         res.send(err.name, {error: err.message})
     }
 }

@@ -6,7 +6,6 @@ const User = require('../models/User');
 
 exports.get_posts = async(req, res) => {
     try {
-        console.log(req.query)
         var sortQuery;
         if (req.query.sort === 'Recent') {
             sortQuery = {
@@ -44,7 +43,7 @@ exports.get_posts = async(req, res) => {
         if (req.query.searchTerm) {
             const posts = await Post.aggregate([
                 { $match: { title: { '$regex': req.query.searchTerm, '$options': 'i' } } },
-                { $project: { likeCount: { $size: "$likes" }, title: "$title", user_name: "$user_name", date: '$date', image: '$image', views: '$views', tags: '$tags' } },
+                { $project: { likeCount: { $size: "$likes" }, category: '$category', title: "$title", userName: "$author.userName", date: '$date', image: '$image', views: '$views', tags: '$tags' } },
                 sortQuery,
                 { $skip: page },
                 { $limit: perPage },
@@ -54,7 +53,7 @@ exports.get_posts = async(req, res) => {
 
         else {
             const posts = await Post.aggregate([
-                { $project: { likeCount: { $size: "$likes" }, title: "$title", user_name: "$user_name", date: '$date', image: '$image', views: '$views', tags: '$tags' } },
+                { $project: { likeCount: { $size: "$likes" }, category: '$category', title: "$title", userName: "$author.userName", date: '$date', image: '$image', views: '$views', tags: '$tags' } },
             sortQuery,
                 { $skip: page },
                 { $limit: perPage },
@@ -108,13 +107,13 @@ exports.get_post = async(req, res) => {
     }
 }
 
-exports.get_comments = async(req, res) => {
+exports.getComments = async(req, res) => {
     try {
         const currentPage = req.query.page || 1;
         const perPage = 10;
         const page = ((currentPage - 1) * perPage)
-        var comments = await Comment.find({ post_id: req.params.id }, null, { skip: page, limit: perPage, sort: { date: -1 } });
-        var count = await Comment.count({ post_id: req.params.id });
+        var comments = await Comment.find({ 'post._id': req.params.postId }, null, { skip: page, limit: perPage, sort: { date: -1 } });
+        var count = await Comment.count({ 'post._id': req.params.postId });
         res.json({ comments, count })
     }
     catch (err) {
@@ -123,14 +122,13 @@ exports.get_comments = async(req, res) => {
     }
 }
 
-exports.post_comment = async(req, res) => {
+exports.postComment = async(req, res) => {
     try {
         var comment = await Comment.create({
-            post_id: req.params.id,
-            date: new Date(),
-            user_name: req.body.user_name,
-            user_id: req.body.user_id,
-            body: req.body.body
+            post : req.body.post,
+            author: req.body.author,
+            body: req.body.body,
+            date: new Date()
         })
         res.status(200).json(comment);
     }
@@ -174,18 +172,17 @@ exports.post_reply = async(req, res) => {
     }
 }
 
-exports.create_post = async(req, res) => {
+exports.create_post = async(req, res) => { 
     try {
 
         var created = await Post.create({
             title: req.body.title,
             caption: req.body.caption,
             body: req.body.body,
-            user_id: req.body.user_id,
             category: req.body.category,
             tags: req.body.tags,
-            user_name: req.body.user_name,
             image: req.body.image,
+            author: req.body.author,
             date: new Date()
         })
         res.json(created)
@@ -193,7 +190,7 @@ exports.create_post = async(req, res) => {
     catch (err) {
         console.log(err)
         res.status(500).json()
-    }
+    } 
 }
 
 exports.like_post = async(req, res) => {

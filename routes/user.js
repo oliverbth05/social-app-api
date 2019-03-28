@@ -3,16 +3,16 @@ const userController = require('../controllers/user');
 
 const router = express.Router();
 
-router.post('/user/:id/pins', userController.add_pin);
-router.delete('/user/:user_id/pins/:post_id', userController.remove_pin);
+router.post('/user/:userId/pins', userController.addPin);
+router.delete('/user/:userId/pins/:postId', userController.removePin);
 
-router.post('/user/:id/subscriptions', userController.add_subscription);
-router.delete('/user/:subscriber_id/subscriptions/:creator_id', userController.remove_subscription);
+router.post('/user/:subscriberId/subscriptions/creatorId', userController.addSubscription);
+router.delete('/user/:subscriberId/subscriptions/:creatorId', userController.removeSubscription);
 
-router.get('/user/:user_id/notifications', userController.get_notifications);
-router.patch('/user/:user_id/notifications/:notification_id', userController.update_notification);
+router.get('/user/:userId/notifications', userController.getNotifications);
+router.patch('/user/:userId/notifications/:notificationId', userController.updateNotification);
 
-router.get('/user/:id', userController.get_userProfile);
-router.get('/user/:id/posts', userController.get_user_posts);
+router.get('/user/:userId', userController.getUserProfile);
+router.get('/user/:userId/posts', userController.getUserPosts);
 
-module.exports = router; 
+module.exports = router;  

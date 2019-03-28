@@ -3,16 +3,20 @@ const Notification = require('../models/Notification');
 const Post = require('../models/Post');
 const jwt = require('jsonwebtoken');
 
-exports.add_pin = async(req, res) => {
+exports.addPin = async (req, res) => {
   try {
 
-    let pinData = {
-      post_id: req.body.post_id,
-      pin_date: new Date(),
-      post_title: req.body.post_title
+    let newPin = {
+      post: {
+        _id: req.body.postId,
+        title: req.body.postTitle
+      },
+      pinDate: new Date(),
     }
 
-    let updatedUser = await User.updateOne({ _id: req.params.id }, { $push: { pins: pinData } })
+    console.log(newPin)
+
+    let updatedUser = await User.updateOne({ _id: req.params.userId }, { $push: { pins: newPin } })
     res.status(200).json()
   }
 
@@ -21,9 +25,9 @@ exports.add_pin = async(req, res) => {
   }
 }
 
-exports.remove_pin = async(req, res) => {
+exports.removePin = async (req, res) => {
   try {
-    var deleted = await User.update({ _id: req.params.user_id }, { $pull: { pins: { post_id: req.params.post_id } } });
+    var deleted = await User.update({ _id: req.params.userId }, { $pull: { pins: { 'post._id': req.params.postId } } });
     res.status(200).json();
   }
   catch (err) {
@@ -31,24 +35,27 @@ exports.remove_pin = async(req, res) => {
   }
 }
 
-exports.add_subscription = async(req, res) => {
+exports.addSubscription = async (req, res) => {
   try {
 
-
-    let subCreator = {
-      creator_id: req.body.creator_id,
-      creator_name: req.body.creator_name,
-      date_subscribed: new Date()
+    let newSubscription = {
+      creator: {
+        _id: req.body.subscription.creator._id,
+        userName: req.body.subscription.creator.userName
+      },
+      dateSubscribed: new Date()
     }
 
-    let subUser = {
-      subscriber_id: req.body.subscriber_id,
-      subscriber_name: req.body.subscriber_name,
-      date_subscribed: new Date()
+    let newSubscriber = {
+      subscriber: {
+        _id: req.body.subscriber._id,
+        userName: req.body.subscriber.userName
+      },
+      dateSubscribed: new Date()
     }
 
-    let updatedSubscriber = await User.updateOne({ _id: req.params.id }, { $push: { subscriptions: subCreator } })
-    let updatedCreator = await User.updateOne({ _id: req.body.creator_id }, { $push: { subscribers: subUser } })
+    let updatedSubscriber = await User.updateOne({ _id: req.params.subscriberId }, { $push: { subscriptions: newSubscription } })
+    let updatedCreator = await User.updateOne({ _id: req.body.creatorId }, { $push: { subscribers: newSubscriber } })
     res.status(200).json()
   }
 
@@ -57,11 +64,10 @@ exports.add_subscription = async(req, res) => {
   }
 }
 
-exports.remove_subscription = async(req, res) => {
+exports.removeSubscription = async (req, res) => {
   try {
-
-    var deletedCreator = await User.updateOne({ _id: req.params.subscriber_id }, { $pull: { subscriptions: { creator_id: req.params.creator_id } } });
-    var deletedSub = await User.updateOne({ _id: req.params.creator_id }, { $pull: { subscribers: { subscriber_id: req.params.subscriber_id } } });
+    var deletedCreator = await User.updateOne({ _id: req.params.subscriberId }, { $pull: { subscriptions: { 'creator._id': req.params.creatorId } } });
+    var deletedSubscriber = await User.updateOne({ _id: req.params.creatorId }, { $pull: { subscribers: { 'subscriber._id': req.params.subscriberId } } });
     res.status(200).json()
   }
   catch (err) {
@@ -69,27 +75,27 @@ exports.remove_subscription = async(req, res) => {
   }
 }
 
-exports.get_userProfile = async(req, res) => {
+exports.getUserProfile = async (req, res) => {
   try {
-    let user = await User.findOne({ _id: req.params.id })
+    let user = await User.findOne({ _id: req.params.userId })
     res.json(user)
   }
   catch (err) {
     res.json(500)
   }
 }
-
-exports.get_user_posts = async(req, res) => {
+ 
+exports.getUserPosts = async (req, res) => {
   try {
-
+ 
     let posts;
 
     if (req.query.limit) {
-      posts = await Post.find({ user_id: req.params.id }).limit(5)
+      posts = await Post.find({ 'author._id': req.params.userId }).limit(5)
     }
 
     else {
-      posts = await Post.find({ user_id: req.params.id })
+      posts = await Post.find({ 'author._id': req.params.userId })
     }
 
     res.json(posts)
@@ -99,9 +105,9 @@ exports.get_user_posts = async(req, res) => {
   }
 }
 
-exports.get_notifications = async(req, res) => {
+exports.getNotifications = async (req, res) => {
   try {
-    var notifications = await Notification.find({ user_id: req.params.user_id })
+    var notifications = await Notification.find({ user_id: req.params.userId })
     res.json(notifications)
   }
 
@@ -110,9 +116,9 @@ exports.get_notifications = async(req, res) => {
   }
 }
 
-exports.update_notification = async(req, res) => {
+exports.updateNotification = async (req, res) => {
   try {
-    await Notification.updateOne({ _id: req.params.notification_id }, { $set: { isRead: true } })
+    await Notification.updateOne({ _id: req.params.notificationId }, { $set: { isRead: true } })
     res.status(200).json()
   }
 
