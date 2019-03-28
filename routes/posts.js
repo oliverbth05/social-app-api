@@ -3,20 +3,19 @@ const postsController = require('../controllers/posts');
 
 const router = express.Router();
 
-router.get('/posts', postsController.get_posts);
-router.post('/posts', postsController.create_post);
-router.get('/posts/:id', postsController.get_post);
-router.patch('/posts/:id', postsController.update_post);
-router.delete('/posts/:id', postsController.delete_post);
-router.post('/posts/:id/likes', postsController.like_post);
+router.get('/posts', postsController.getPosts);
+router.post('/posts', postsController.createPost);
+router.get('/posts/:id', postsController.getPost);
+router.patch('/posts/:postId', postsController.updatePost);
+router.delete('/posts/:id', postsController.deletePost);
+router.post('/posts/:postId/likes', postsController.likePost);
 
 router.get('/posts/:postId/comments', postsController.getComments);
 router.post('/posts/:postId/comments', postsController.postComment);
-router.get('/posts/:postId/comments/:commentId', postsController.get_comment);
-router.post('/posts/:postId/comments/:commentId/likes', postsController.like_comment);
-router.patch('/posts/:postId/comments/:commentId', postsController.update_comment);
-router.delete('/posts/:postId/comments/:commentId', postsController.delete_comment);
+router.get('/posts/:postId/comments/:commentId', postsController.getComment);
+router.post('/posts/:postId/comments/:commentId/likes', postsController.likeComment);
+router.patch('/posts/:postId/comments/:commentId', postsController.updateComment);
+router.delete('/posts/:postId/comments/:commentId', postsController.deleteComment);
 
 
 module.exports = router;
- 

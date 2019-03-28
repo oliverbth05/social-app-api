@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 
-exports.get_posts = async(req, res) => {
+exports.getPosts = async(req, res) => {
     try {
         var sortQuery;
         if (req.query.sort === 'Recent') {
@@ -67,7 +67,7 @@ exports.get_posts = async(req, res) => {
     }
 }
 
-exports.get_post = async(req, res) => {
+exports.getPost = async(req, res) => {
     try {
         await Post.updateOne({ _id: req.params.id }, { $inc: { views: 1 } })
         var post = await Post.findOne({ _id: req.params.id })
@@ -125,7 +125,7 @@ exports.getComments = async(req, res) => {
 exports.postComment = async(req, res) => {
     try {
         var comment = await Comment.create({
-            post : req.body.post,
+            post: req.body.post,
             author: req.body.author,
             body: req.body.body,
             date: new Date()
@@ -138,12 +138,16 @@ exports.postComment = async(req, res) => {
     }
 }
 
-exports.like_comment = async(req, res) => {
+exports.likeComment = async(req, res) => {
     try {
-        await Comment.updateOne({ _id: req.params.id }, { $addToSet: { likes: req.body.user_id } })
+        console.log(req.body)
+        await Comment.updateOne({ _id: req.params.commentId }, { $addToSet: { likes: req.body.user._id } })
         await Notification.create({
-            user_id: req.body.author_id,
-            title: `${req.body.user_name} liked your comment.`,
+            user: {
+                _id: req.body.author._id,
+                userName: req.body.author.userName
+            },
+            title: `${req.body.user.userName} liked your comment.`,
             date: new Date(),
             isRead: false
         })
@@ -156,7 +160,7 @@ exports.like_comment = async(req, res) => {
     }
 }
 
-exports.post_reply = async(req, res) => {
+exports.postReply = async(req, res) => {
     try {
 
         const reply = {
@@ -172,7 +176,7 @@ exports.post_reply = async(req, res) => {
     }
 }
 
-exports.create_post = async(req, res) => { 
+exports.createPost = async(req, res) => {
     try {
 
         var created = await Post.create({
@@ -190,16 +194,20 @@ exports.create_post = async(req, res) => {
     catch (err) {
         console.log(err)
         res.status(500).json()
-    } 
+    }
 }
 
-exports.like_post = async(req, res) => {
+exports.likePost = async(req, res) => {
+    console.log(req.body)
     try {
-        await Post.updateOne({ _id: req.params.id }, { $addToSet: { likes: req.body.user_id } })
+        await Post.updateOne({ _id: req.params.postId }, { $addToSet: { likes: req.body.user._id } })
 
         await Notification.create({
-            user_id: req.body.author_id,
-            title: `${req.body.user_name} liked your post.`,
+            user: {
+                _id: req.body.author._id,
+                userName: req.body.author.userName
+            },
+            title: `${req.body.user.userName} liked your post.`,
             date: new Date(),
             isRead: false
         })
@@ -212,9 +220,9 @@ exports.like_post = async(req, res) => {
     }
 }
 
-exports.get_comment = async(req, res) => {
+exports.getComment = async(req, res) => {
     try {
-        var comment = await Comment.findOne({ _id: req.params.id })
+        var comment = await Comment.findOne({ _id: req.params.commentId })
         res.json(comment)
     }
     catch (err) {
@@ -223,10 +231,8 @@ exports.get_comment = async(req, res) => {
     }
 }
 
-exports.update_comment = async(req, res) => {
+exports.updateComment = async(req, res) => {
     try {
-
-
         var updated = await Comment.updateOne({ _id: req.body._id }, { $set: { body: req.body.body } });
         res.status(200).send()
     }
@@ -236,9 +242,10 @@ exports.update_comment = async(req, res) => {
     }
 }
 
-exports.delete_comment = async(req, res) => {
+exports.deleteComment = async(req, res) => {
     try {
-        var deleted = await Comment.deleteOne({ _id: req.params.id })
+        var deleted = await Comment.deleteOne({ _id: req.params.commentId })
+        console.log(deleted)
         res.status(200).json()
     }
     catch (err) {
@@ -247,10 +254,10 @@ exports.delete_comment = async(req, res) => {
     }
 }
 
-exports.update_post = async(req, res) => {
+exports.updatePost = async(req, res) => {
     try {
 
-        var updated = await Post.updateOne({ _id: req.body._id }, {
+        var updated = await Post.updateOne({ _id: req.params.postId }, {
             $set: {
                 title: req.body.title,
                 caption: req.body.caption,
@@ -268,7 +275,7 @@ exports.update_post = async(req, res) => {
     }
 }
 
-exports.delete_post = async(req, res) => {
+exports.deletePost = async(req, res) => {
     try {
         var deletedPost = await Post.deleteOne({ _id: req.params.id })
         var deleteComments = await Comment.deleteMany({ post_id: req.params.id })
