@@ -3,7 +3,7 @@
 
 const path = require('path');
 const mongoose = require('mongoose');
-const dbconfig = require('./dbconfig.js');
+const {username, password} = require('./dbconfig.js');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -25,7 +25,7 @@ app.use(postsRoutes);
 app.use(userRoutes);
 app.use(statsRoutes);
 
-mongoose.connect(`mongodb://${dbconfig.username}:${dbconfig.password}@ds163354.mlab.com:63354/social_app`, { useNewUrlParser: true })
+mongoose.connect(`mongodb://${username}:${password}@ds163354.mlab.com:63354/social_app`, { useNewUrlParser: true })
     .then(() => {
         console.log('connected to mongoDB')
         app.listen(8081, () => {

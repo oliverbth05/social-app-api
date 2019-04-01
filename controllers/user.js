@@ -17,7 +17,7 @@ exports.addPin = async(req, res) => {
   catch (err) {
     res.status(500).json(500)
   }
-}
+} 
 
 exports.removePin = async(req, res) => {
   try {
@@ -46,6 +46,12 @@ exports.addSubscription = async(req, res) => {
 
     let updatedSubscriber = await User.updateOne({ _id: req.params.subscriberId }, { $push: { subscriptions: newSubscription } })
     let updatedCreator = await User.updateOne({ _id: req.body.creatorId }, { $push: { subscribers: newSubscriber } })
+
+    let notification = await Notification.create({
+      user: req.body.creator,
+      title: `${req.body.subscriber.userName} just subscribed to you!`,
+    }) 
+
     res.status(200).json()
   }
 
@@ -62,7 +68,7 @@ exports.removeSubscription = async(req, res) => {
   }
   catch (err) {
     res.status(500).json()
-  }
+  } 
 }
 
 exports.getUserProfile = async(req, res) => {
@@ -97,7 +103,7 @@ exports.getUserPosts = async(req, res) => {
 
 exports.getNotifications = async(req, res) => {
   try {
-    var notifications = await Notification.find({ user_id: req.params.userId })
+    var notifications = await Notification.find({ 'user._id': req.params.userId })
     res.json(notifications)
   }
 
