@@ -103,7 +103,8 @@ exports.getPost = async(req, res) => {
                 res.status(404).json()
             }
         }
-
+        console.log(err)
+        res.status(500).json()
     }
 }
 
@@ -160,21 +161,6 @@ exports.likeComment = async(req, res) => {
     }
 }
 
-exports.postReply = async(req, res) => {
-    try {
-
-        const reply = {
-            ...req.body
-        }
-
-        await Comment.updateOne({ _id: req.params.comment_id }, { $push: { replies: reply } })
-        res.status(200).json()
-    }
-
-    catch (err) {
-
-    }
-}
 
 exports.createPost = async(req, res) => {
     try {

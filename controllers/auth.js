@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const secret = process.env.JWT_SECRET;
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
@@ -20,7 +21,7 @@ exports.login = async(req, res) => {
             err.name = 400
             throw err
         }
-        var token = jwt.sign({ id: user._id }, 'secret', { expiresIn: 86400 }) // expires in 24 hours
+        var token = jwt.sign({ id: user._id }, secret, { expiresIn: 86400 }) // expires in 24 hours
         res.json({ user, token })
     }
 
@@ -54,7 +55,7 @@ exports.register = async(req, res) => {
             date: new Date(),
             isRead: false
         })
-        var token = jwt.sign({ id: newUser._id }, 'secret', { expiresIn: 86400 }) // expires in 24 hours
+        var token = jwt.sign({ id: newUser._id }, secret, { expiresIn: 86400 }) // expires in 24 hours
         res.json({ user: newUser, token, })
     }
     catch (err) {

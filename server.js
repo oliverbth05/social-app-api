@@ -1,9 +1,9 @@
 'use strict'
 
-
 const path = require('path');
 const mongoose = require('mongoose');
-const {username, password} = require('./dbconfig.js');
+const username = process.env.DB_USERNAME;
+const password = process.env.DB_PASSWORD;
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -28,7 +28,7 @@ app.use(statsRoutes);
 mongoose.connect(`mongodb://${username}:${password}@ds163354.mlab.com:63354/social_app`, { useNewUrlParser: true })
     .then(() => {
         console.log('connected to mongoDB')
-        app.listen(8081, () => {
+        app.listen(process.env.PORT, () => {
             console.log('app listening')
         });
     })

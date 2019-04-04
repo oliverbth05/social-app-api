@@ -15,7 +15,8 @@ exports.addPin = async(req, res) => {
     res.status(200).json()
   }
   catch (err) {
-    res.status(500).json(500)
+    console.log(err)
+    res.status(500).json()
   }
 } 
 
@@ -25,6 +26,7 @@ exports.removePin = async(req, res) => {
     res.status(200).json();
   }
   catch (err) {
+    console.log(err)
     res.status(500).json()
   }
 }
@@ -56,6 +58,7 @@ exports.addSubscription = async(req, res) => {
   }
 
   catch (err) {
+    console.log(err)
     res.status(500).json()
   }
 }
@@ -67,6 +70,7 @@ exports.removeSubscription = async(req, res) => {
     res.status(200).json()
   }
   catch (err) {
+    console.log(err)
     res.status(500).json()
   } 
 }
@@ -77,6 +81,7 @@ exports.getUserProfile = async(req, res) => {
     res.json(user)
   }
   catch (err) {
+    console.log(err)
     res.status(500).json()
   }
 }
@@ -87,16 +92,17 @@ exports.getUserPosts = async(req, res) => {
     let posts;
 
     if (req.query.limit) {
-      posts = await Post.find({ 'author._id': req.params.userId }).limit(5)
+      posts = await Post.find({ 'author._id': req.params.userId }).limit(5).sort({views: -1})
     }
 
     else {
-      posts = await Post.find({ 'author._id': req.params.userId })
+      posts = await Post.find({ 'author._id': req.params.userId }).sort({views: -1})
     }
 
     res.json(posts)
   }
   catch (err) {
+    console.log(err)
     res.status(500).json()
   }
 }
@@ -108,6 +114,7 @@ exports.getNotifications = async(req, res) => {
   }
 
   catch (err) {
+    console.log(err)
     res.status(500).json()
   }
 }
@@ -119,6 +126,7 @@ exports.updateNotification = async(req, res) => {
   }
 
   catch (err) {
+    console.log(err)
     res.status(500).json()
   }
 }
